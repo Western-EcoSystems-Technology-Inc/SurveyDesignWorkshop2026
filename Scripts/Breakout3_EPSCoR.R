@@ -100,7 +100,7 @@ Frame <- as.data.frame(st_read(file.path(framePath,'LewisRiver_Frame_Point.shp')
 Frame$StrataCode <- as.numeric(as.factor(Frame$basin))
 Frame$stratum <- Frame$basin
 
-RatioEstTotal_Strata(Chinook, Frame, 'Y')
+RatioEstTotal_Strata(data.frame(Chinook), Frame, 'Y')
 
 
 save.image(file.path(workPath,'Breakout3.RData'))

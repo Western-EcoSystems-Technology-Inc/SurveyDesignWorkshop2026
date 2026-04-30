@@ -72,23 +72,13 @@ Chinook_sf <- st_as_sf(Chinook,geometry=Chinook$geometry, crs="EPSG:5070")
 basin_redd_ests_ByBasin <- cont_analysis(
   Chinook_sf[Chinook_sf$Notes=='surveyed',],
   siteID = "Reach",
-  vars = "Y", #density",
+  vars = "Y", 
   weight = "wgtAdj",
   subpops = "basin",
-  stratumID = "basin"
+  stratumID = "basin",
+  All_Sites = TRUE
 )
-
-# Across Basin/Stratum
-basin_redd_ests_AcrossBasins <- cont_analysis(
-  Chinook_sf[Chinook_sf$Notes=='surveyed',],
-  siteID = "Reach",
-  vars = "Y", #density",
-  weight = "wgtAdj",
-  stratumID = "basin"
-)
-
-# Combine estimates
-rbind(basin_redd_ests_ByBasin$Total,basin_redd_ests_AcrossBasins$Total)
+basin_redd_ests_ByBasin$Total
 
 
 

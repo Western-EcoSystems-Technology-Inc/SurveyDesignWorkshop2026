@@ -9,6 +9,11 @@
 # Western EcoSystems Technology, Inc.
 #########################################################
 
+## Description: This code compares two sampling frame designs (linear and finite point) and 
+# how both equaiprobable and stratified spatially random samples are created and the associated weights for each design
+
+
+
 rm(list=ls())
 
 ###############################################################################
@@ -31,6 +36,7 @@ require(spsurvey)
 # set random seed for reproducibility
 ###############################################################################
 #runif(1,0,10000000)  # 2776671
+# If you'd like, set your own seed to get different results from other groups
 set.seed(2776671)
 
 ###############################################################################
@@ -44,13 +50,17 @@ set.seed(2776671)
 
 LewisRiver_Frame_Point <- st_read(file.path(framePath,'LewisRiver_Frame_Point.shp'))
 names(LewisRiver_Frame_Point)
-sum(LewisRiver_Frame_Point$length_mi)  # 74.21
+
+# What is the total length of the all reaches?
+sum(LewisRiver_Frame_Point$length_mi)
 
 # explore sampling frame - sum stream reach lengths by basin
 PointFrame <- LewisRiver_Frame_Point |>
    group_by(basin) |>
    summarize(totalLength = sum(length_mi)) |>   
    as.data.frame()
+
+# What is the length for each basin?
 PointFrame[,-which(names(PointFrame)=='geometry')]
 
 #########################
@@ -77,12 +87,13 @@ hist(LewisRiver_Frame_Linear$length_mi,main='Linear Frame',breaks=seq(0,0.4,.05)
 # Examine projections of each sampling frame - want equal area projection
 st_crs(LewisRiver_Frame_Point)  # EPSG:5070, NAD83 / Conus Albers 
 st_crs(LewisRiver_Frame_Linear)  # EPSG:5070, NAD83 / Conus Albers 
+
 # These are equal area projections, so we can use this as-is for spatially balanced sampling
 # otherwise, we would transform the projection to an equal area projection
 #  so that distance N-S would be equal to distance E-W for spatial balance
-#LewisRiver_Frame_Point <- st_transform(LewisRiver_Frame_Point,  "EPSG:5070")
+# LewisRiver_Frame_Point <- st_transform(LewisRiver_Frame_Point,  "EPSG:5070")
 
-# create sp_frame objects for sampling from the frames
+# create sp_frame objects for sampling from the frames 
 class(LewisRiver_Frame_Point)  # "sf"         "data.frame"
 LewisRiver_Frame_Point <- sp_frame(LewisRiver_Frame_Point)
 class(LewisRiver_Frame_Point)  # "sp_frame"   "sf"         "data.frame"
@@ -123,17 +134,17 @@ table(table(LewisRiver_Point_samp_equi$sites_base$Reach))
 # Point sample - sum weights by basin
 wgts_Point_equi <- LewisRiver_Point_samp_equi$sites_base |>
    group_by(basin) |>
-   summarize(totalWgt = sum(wgt),uniqueWgt = unique(wgt),n=n()) |>   
+   summarize(totalWgt = sum(wgt), uniqueWgt = unique(wgt), n=n()) |>   
    as.data.frame()
 wgts_Point_equi[,-which(names(wgts_Point_equi)=='geometry')]
 
-# How is the weight calculated?
+# How is the weight calculated? (see hand out)
 N <- nrow(LewisRiver_Frame_Point)
 n <- nrow(LewisRiver_Point_samp_equi$sites_base)
+
+# Point weights (finite frame)
 N/n
-# 
-
-
+# ENTER WEIGHT HERE
 
 #######################
 # Linear Frame
@@ -152,11 +163,12 @@ class(LewisRiver_Linear_samp_equi$sites_base)  # "sf"         "data.frame"
 # Plot sample with frame
 plot(LewisRiver_Linear_samp_equi,sframe=LewisRiver_Frame_Linear,pch=19,lwd=2)  
 
-# how many times is each reach selected?
+# How many times is each reach selected?
 table(table(LewisRiver_Linear_samp_equi$sites_base$Reach))
 # 1  2 
 #88  6
 
+# What (if any) are the implications of reaches getting selected more than once? 
 
 # Linear sample
 # spsurvey calculates weights in meters to match the projection
@@ -171,8 +183,10 @@ wgts_Linear_equi[,-which(names(wgts_Linear_equi)=='geometry')]
 # How is the weight calculated?
 R <- sum(LewisRiver_Frame_Point$length_mi)
 n <- nrow(LewisRiver_Point_samp_equi$sites_base)
+
+# Linear weights (continuous frame)
 R/n
-# 
+# ENTER WEIGHT HERE
  
 ####################################################################
 ####################################################################
@@ -214,6 +228,8 @@ wgts_Point_str <- LewisRiver_Point_samp_str$sites_base |>
              uniqueWgtMi = unique(wgt*mean(LewisRiver_Frame_Point$length_mi)),
              n=n()) |>   
    as.data.frame()
+
+# What are the stratified weights?
 wgts_Point_str[,-which(names(wgts_Point_str)=='geometry')]
 #    basin totalWgt uniqueWgt totalWgtMi uniqueWgtMi   n
 #1   Muddy      124     3.875  36.371700   1.1366156  32
@@ -225,7 +241,7 @@ wgts_Point_str[,-which(names(wgts_Point_str)=='geometry')]
 Nh <- table(LewisRiver_Frame_Point$basin)
 nh <- table(LewisRiver_Point_samp_str$sites_base$basin)
 Nh/nh
-
+# ENTER WEIGHTS HERE
 
 #######################
 # Linear frame
@@ -259,7 +275,7 @@ wgts_Linear_str[,-which(names(wgts_Linear_str)=='geometry')]
 Rh <- aggregate(LewisRiver_Frame_Point$length_mi,list(LewisRiver_Frame_Point$basin),sum)[,2]
 nh <- table(LewisRiver_Point_samp_str$sites_base$basin)
 Rh/nh
-
+# ENTER WEIGHTS HERE
 
 
 save.image(file.path(workPath,'Breakout1.RData'))
